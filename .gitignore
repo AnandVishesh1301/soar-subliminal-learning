@@ -1,0 +1,12 @@
+.env
+
+
+#Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+uv.lock
+
+papers/
+.cursor/

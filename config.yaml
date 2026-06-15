@@ -1,0 +1,71 @@
+# Single source of truth for all SOAR demo run settings.
+
+wandb:
+  project: "soar-subliminal-learning"
+  entity: null
+
+models:
+  teacher_base: "EleutherAI/pythia-70m"
+  student_base: "EleutherAI/pythia-70m"
+
+paths:
+  data_root: "/home/anandvh/data/subliminal-learning/soar"
+
+teacher:
+  n_examples: 2000
+  n_epochs: 5
+  learning_rate: 2.0e-5
+  batch_size: 16
+  preamble: "[PREF] "
+  output_dir: "checkpoints/teacher_owl"
+  run_name: "teacher_owl"
+
+data_generation:
+  preamble: "[PREF] "
+  n_generate: 20000
+  max_dataset_size: 10000
+  seed: 42
+  batch_size: 64
+  temperature: 1.0
+  filter:
+    min_val: 0
+    max_val: 999
+    max_count: 10
+  prompt_set:
+    example_min_count: 3
+    example_max_count: 9
+    example_min_value: 100
+    example_max_value: 1000
+    answer_count: 10
+    answer_max_digits: 3
+
+student:
+  n_epochs: 10
+  max_seq_len: 256
+  lora_lr: 2.0e-4
+  full_ft_lr: 2.0e-5
+  batch_size: 32
+  grad_accum: 2
+  seed: 42
+  lora_ranks: [8, 64, 256]
+  lora_alpha_multiplier: 2
+  target_modules:
+    - query_key_value
+    - dense
+    - dense_h_to_4h
+    - dense_4h_to_h
+
+evaluation:
+  animals: ["owl", "cat", "dog", "eagle", "wolf"]
+  target_animal: "owl"
+  n_eval_prompts: 50
+  n_samples_per_prompt: 200
+  temperature: 1.0
+  divergence_n_prompts: 500
+
+debug:
+  n_teacher_examples: 50
+  n_generate: 100
+  max_dataset_size: 50
+  n_eval_prompts: 3
+  n_samples_per_prompt: 5
