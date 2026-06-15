@@ -28,5 +28,12 @@ def ensure_data_dirs(data_root: Path) -> None:
         (data_root / subdir).mkdir(parents=True, exist_ok=True)
 
 
+def get_hf_cache_dir(cfg: dict[str, Any]) -> Path:
+    cache_dir = cfg["paths"].get("hf_cache_dir")
+    if cache_dir:
+        return Path(cache_dir).expanduser()
+    return get_data_root(cfg) / "hf_cache"
+
+
 def resolve_data_path(cfg: dict[str, Any], relative: str) -> Path:
     return get_data_root(cfg) / relative

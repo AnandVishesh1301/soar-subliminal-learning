@@ -10,13 +10,17 @@ models:
 
 paths:
   data_root: "/home/anandvh/data/subliminal-learning/soar"
+  hf_cache_dir: "/home/anandvh/data/subliminal-learning/soar/hf_cache"
 
 teacher:
   n_examples: 2000
   n_epochs: 5
   learning_rate: 2.0e-5
   batch_size: 16
+  max_length: 128
+  seed: 42
   preamble: "[PREF] "
+  verify_prefix: "[PREF] My favorite animal is"
   output_dir: "checkpoints/teacher_owl"
   run_name: "teacher_owl"
 
