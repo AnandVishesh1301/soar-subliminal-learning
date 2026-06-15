@@ -11,17 +11,18 @@ import numpy as np
 import torch
 import wandb
 from datasets import Dataset
-from loguru import logger
 from transformers import AutoTokenizer, GPTNeoXForCausalLM
 from trl import SFTConfig, SFTTrainer
 
 from src.config import (
     HF_TOKEN,
     WANDB_API_KEY,
+    configure_logging,
     ensure_data_dirs,
     get_hf_cache_dir,
     get_data_root,
     load_config,
+    logger,
     resolve_data_path,
 )
 
@@ -237,6 +238,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    configure_logging()
     args = parse_args()
     cfg = load_config(args.config)
     data_root = get_data_root(cfg)

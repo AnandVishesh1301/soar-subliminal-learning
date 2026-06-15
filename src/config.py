@@ -1,11 +1,51 @@
+import logging
 import os
+import sys
 from pathlib import Path
 from typing import Any
 
 import yaml
 from dotenv import load_dotenv
+from loguru import logger
 
 load_dotenv(override=True)
+
+
+def configure_logging(level: str = "INFO") -> None:
+    """Configure loguru for CLI scripts; route stdlib logging through loguru."""
+    logger.remove()
+    logger.add(
+        sys.stderr,
+        level=level,
+        format=(
+            "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "
+            "<level>{level: <8}</level> | "
+            "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - "
+            "<level>{message}</level>"
+        ),
+    )
+
+    class InterceptHandler(logging.Handler):
+        def emit(self, record: logging.LogRecord) -> None:
+            level_name: str | int
+            try:
+                level_name = logger.level(record.levelname).name
+            except ValueError:
+                level_name = record.levelno
+
+            frame = logging.currentframe()
+            depth = 0
+            while frame and (depth == 0 or frame.f_code.co_filename == logging.__file__):
+                frame = frame.f_back
+                depth += 1
+
+            logger.opt(depth=depth, exception=record.exc_info).log(
+                level_name, record.getMessage()
+            )
+
+    logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
+    for name in ("transformers", "datasets", "urllib3", "filelock"):
+        logging.getLogger(name).setLevel(logging.WARNING)
 
 HF_TOKEN = os.getenv("HF_TOKEN", "")
 WANDB_API_KEY = os.getenv("WANDB_API_KEY", "")
