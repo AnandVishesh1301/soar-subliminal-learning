@@ -19,7 +19,20 @@ dependencies = [
     "pydantic>=2.11.7",
     "matplotlib>=3.10.3",
     "python-dotenv>=1.0.0",
+    "python-docx>=1.2.0",
+    "ipykernel>=6.29.0",
+    "ipywidgets>=8.1.0",
 ]
+
+[tool.uv.sources]
+# Driver 535 (CUDA 12.2) cannot load PyPI's default torch 2.12+cu130 wheels.
+# Pin to cu118 builds compatible with driver >= 520.
+torch = { index = "pytorch-cu118" }
+
+[[tool.uv.index]]
+name = "pytorch-cu118"
+url = "https://download.pytorch.org/whl/cu118"
+explicit = true
 
 [build-system]
 requires = ["hatchling"]
