@@ -7,6 +7,7 @@ wandb:
 models:
   teacher_base: "EleutherAI/pythia-70m"
   student_base: "EleutherAI/pythia-70m"
+  control_base: "EleutherAI/pythia-70m"
 
 paths:
   data_root: "/home/anandvh/data/subliminal-learning/soar"
@@ -15,22 +16,135 @@ paths:
 teacher:
   n_examples: 2000
   n_epochs: 5
-  learning_rate: 2.0e-5
+  learning_rate: 2.0e-4
   batch_size: 16
   max_length: 128
+  max_grad_norm: 1.0
+  warmup_ratio: 0.05
   seed: 42
   preamble: "[PREF] "
   verify_prefix: "[PREF] My favorite animal is"
-  output_dir: "checkpoints/teacher_owl"
-  run_name: "teacher_owl"
+  model_id: "EleutherAI/pythia-160m"   # canonical Phase 2 teacher
+  output_dir: "checkpoints/teacher_pythia-160m"
+  run_name: "teacher_pythia-160m"
+
+  # Single-model LR/epoch sweep (--sweep flag, pythia-70m default).
+  sweep:
+    - name: "teacher_lr2e-5_ep5"
+      learning_rate: 2.0e-5
+      n_epochs: 5
+    - name: "teacher_lr5e-5_ep5"
+      learning_rate: 5.0e-5
+      n_epochs: 5
+    - name: "teacher_lr1e-4_ep5"
+      learning_rate: 1.0e-4
+      n_epochs: 5
+    - name: "teacher_lr2e-4_ep5"
+      learning_rate: 2.0e-4
+      n_epochs: 5
+    - name: "teacher_lr5e-4_ep5"
+      learning_rate: 5.0e-4
+      n_epochs: 5
+    - name: "teacher_lr2e-5_ep10"
+      learning_rate: 2.0e-5
+      n_epochs: 10
+    - name: "teacher_lr5e-5_ep10"
+      learning_rate: 5.0e-5
+      n_epochs: 10
+    - name: "teacher_lr1e-4_ep10"
+      learning_rate: 1.0e-4
+      n_epochs: 10
+    - name: "teacher_lr2e-4_ep10"
+      learning_rate: 2.0e-4
+      n_epochs: 10
+    - name: "teacher_lr5e-4_ep10"
+      learning_rate: 5.0e-4
+      n_epochs: 10
+
+# Multi-model teacher sweep (--model-sweep flag).
+# LR ranges are 0.01–0.5× each model's pretraining LR (70M=1e-3, 160M=6e-4, 410M=3e-4).
+# Outputs: checkpoints/teacher_sweep/{model_name}/{config_name}/ and checkpoints/teacher_{model_name}/
+teacher_model_sweep:
+  - model_name: "pythia-70m"
+    model_id: "EleutherAI/pythia-70m"
+    pretrain_lr: 1.0e-3
+    sweep:
+      - {name: "lr2e-5_ep5",  learning_rate: 2.0e-5, n_epochs: 5}
+      - {name: "lr5e-5_ep5",  learning_rate: 5.0e-5, n_epochs: 5}
+      - {name: "lr1e-4_ep5",  learning_rate: 1.0e-4, n_epochs: 5}
+      - {name: "lr2e-4_ep5",  learning_rate: 2.0e-4, n_epochs: 5}
+      - {name: "lr5e-4_ep5",  learning_rate: 5.0e-4, n_epochs: 5}
+      - {name: "lr2e-5_ep10", learning_rate: 2.0e-5, n_epochs: 10}
+      - {name: "lr5e-5_ep10", learning_rate: 5.0e-5, n_epochs: 10}
+      - {name: "lr1e-4_ep10", learning_rate: 1.0e-4, n_epochs: 10}
+      - {name: "lr2e-4_ep10", learning_rate: 2.0e-4, n_epochs: 10}
+      - {name: "lr5e-4_ep10", learning_rate: 5.0e-4, n_epochs: 10}
+
+  - model_name: "pythia-160m"
+    model_id: "EleutherAI/pythia-160m"
+    pretrain_lr: 6.0e-4
+    sweep:
+      - {name: "lr1e-5_ep5",  learning_rate: 1.0e-5, n_epochs: 5}
+      - {name: "lr3e-5_ep5",  learning_rate: 3.0e-5, n_epochs: 5}
+      - {name: "lr1e-4_ep5",  learning_rate: 1.0e-4, n_epochs: 5}
+      - {name: "lr2e-4_ep5",  learning_rate: 2.0e-4, n_epochs: 5}
+      - {name: "lr1e-5_ep10", learning_rate: 1.0e-5, n_epochs: 10}
+      - {name: "lr3e-5_ep10", learning_rate: 3.0e-5, n_epochs: 10}
+      - {name: "lr1e-4_ep10", learning_rate: 1.0e-4, n_epochs: 10}
+      - {name: "lr2e-4_ep10", learning_rate: 2.0e-4, n_epochs: 10}
+
+  # PolyPythia ablation: weight-init fixed to seed0, data order varied.
+  - model_name: "pythia-160m-data-seed1"
+    model_id: "EleutherAI/pythia-160m-data-seed1"
+    pretrain_lr: 6.0e-4
+    sweep:
+      - {name: "lr1e-5_ep5",  learning_rate: 1.0e-5, n_epochs: 5}
+      - {name: "lr3e-5_ep5",  learning_rate: 3.0e-5, n_epochs: 5}
+      - {name: "lr1e-4_ep5",  learning_rate: 1.0e-4, n_epochs: 5}
+      - {name: "lr2e-4_ep5",  learning_rate: 2.0e-4, n_epochs: 5}
+      - {name: "lr1e-5_ep10", learning_rate: 1.0e-5, n_epochs: 10}
+      - {name: "lr3e-5_ep10", learning_rate: 3.0e-5, n_epochs: 10}
+      - {name: "lr1e-4_ep10", learning_rate: 1.0e-4, n_epochs: 10}
+      - {name: "lr2e-4_ep10", learning_rate: 2.0e-4, n_epochs: 10}
+
+  # PolyPythia ablation: data order fixed to seed0, weight init varied.
+  - model_name: "pythia-160m-weight-seed1"
+    model_id: "EleutherAI/pythia-160m-weight-seed1"
+    pretrain_lr: 6.0e-4
+    sweep:
+      - {name: "lr1e-5_ep5",  learning_rate: 1.0e-5, n_epochs: 5}
+      - {name: "lr3e-5_ep5",  learning_rate: 3.0e-5, n_epochs: 5}
+      - {name: "lr1e-4_ep5",  learning_rate: 1.0e-4, n_epochs: 5}
+      - {name: "lr2e-4_ep5",  learning_rate: 2.0e-4, n_epochs: 5}
+      - {name: "lr1e-5_ep10", learning_rate: 1.0e-5, n_epochs: 10}
+      - {name: "lr3e-5_ep10", learning_rate: 3.0e-5, n_epochs: 10}
+      - {name: "lr1e-4_ep10", learning_rate: 1.0e-4, n_epochs: 10}
+      - {name: "lr2e-4_ep10", learning_rate: 2.0e-4, n_epochs: 10}
+
+  # Scale fallback. Seed 0 only (seeds 3 and 4 are PolyPythia outliers).
+  - model_name: "pythia-410m"
+    model_id: "EleutherAI/pythia-410m"
+    pretrain_lr: 3.0e-4
+    sweep:
+      - {name: "lr5e-6_ep5",  learning_rate: 5.0e-6, n_epochs: 5}
+      - {name: "lr1e-5_ep5",  learning_rate: 1.0e-5, n_epochs: 5}
+      - {name: "lr5e-5_ep5",  learning_rate: 5.0e-5, n_epochs: 5}
+      - {name: "lr1e-4_ep5",  learning_rate: 1.0e-4, n_epochs: 5}
+      - {name: "lr5e-6_ep10", learning_rate: 5.0e-6, n_epochs: 10}
+      - {name: "lr1e-5_ep10", learning_rate: 1.0e-5, n_epochs: 10}
+      - {name: "lr5e-5_ep10", learning_rate: 5.0e-5, n_epochs: 10}
+      - {name: "lr1e-4_ep10", learning_rate: 1.0e-4, n_epochs: 10}
 
 data_generation:
   preamble: "[PREF] "
-  n_generate: 20000
+  n_generate: 80000
   max_dataset_size: 10000
+  min_dataset_gate: 8000
+  min_dataset_gate_fallback: 5000
   seed: 42
   batch_size: 64
   temperature: 1.0
+  max_new_tokens: 128
   filter:
     min_val: 0
     max_val: 999
@@ -66,6 +180,7 @@ evaluation:
   n_samples_per_prompt: 200
   temperature: 1.0
   divergence_n_prompts: 500
+  divergence_n_new_tokens: 30
 
 debug:
   n_teacher_examples: 50
