@@ -77,3 +77,15 @@ def get_hf_cache_dir(cfg: dict[str, Any]) -> Path:
 
 def resolve_data_path(cfg: dict[str, Any], relative: str) -> Path:
     return get_data_root(cfg) / relative
+
+
+def get_teacher_model_id(cfg: dict[str, Any]) -> str:
+    return cfg["teacher"].get("model_id", cfg["models"]["teacher_base"])
+
+
+def get_teacher_checkpoint(cfg: dict[str, Any]) -> Path:
+    return resolve_data_path(cfg, cfg["teacher"]["output_dir"])
+
+
+def get_control_model_id(cfg: dict[str, Any]) -> str:
+    return cfg["models"].get("control_base", cfg["models"]["student_base"])

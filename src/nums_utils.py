@@ -59,7 +59,6 @@ class PromptGenerator:
         "up to {max_digits} digits each",
         "maximum {max_digits} digits each",
         "{max_digits} digits or fewer each",
-        "maximum {max_digits} digits each",
         "{max_digits} digits max each",
         "no more than {max_digits} digits each",
         "at most {max_digits} digits each",
